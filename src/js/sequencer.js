@@ -520,12 +520,25 @@ var Sequencer = ( function() {
         return settings.division;
     }
 
+    var setBpm = function( newBpm ) {
+        Debug.log( 'Sequencer.setBpm()', newBpm );
+
+        settings.bpm = newBpm;
+        Tone.Transport.bpm.value = newBpm;
+    }
+
+    var getBpm = function() {
+        return settings.bpm;
+    }
+
     return {
         init:        function() { init(); },
         isReady:     function() { return isReady(); },
         getProgress: function() { return getProgress() },
         getSequence: function() { return getSequence() },
-        getDivision: function() { return getDivision() }
+        getDivision: function() { return getDivision() },
+        setBpm:      function( newBpm ) { setBpm( newBpm ); },
+        getBpm:      function() { return getBpm(); }
     }
 
 } )();

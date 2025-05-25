@@ -28,7 +28,8 @@ var Ui = ( function() {
             },
             recorder: {
                 indicator: '.ui-indicator-recorder'
-            }
+            },
+            bpmInput: '#bpm-input'
         },
         isVisible: {
             controls:   false,
@@ -64,6 +65,21 @@ var Ui = ( function() {
         }
 
         bindEventHandlers();
+
+        // Set initial BPM value
+        if (Sequencer && typeof Sequencer.getBpm === 'function') {
+            var initialBpm = Sequencer.getBpm();
+            $(settings.selector.bpmInput).val(initialBpm);
+            Debug.log('Ui.init() - Set initial BPM from Sequencer:', initialBpm);
+        } else {
+            // Fallback or default if Sequencer or getBpm is not available
+            // This might happen if Ui.js is initialized before Sequencer.js fully sets up getBpm
+            // Or if there's an issue with Sequencer's exposure of getBpm
+            // For now, we can log this or set a default value like 108 from the input's HTML
+            var initialBpmFromHtml = parseInt($(settings.selector.bpmInput).val());
+            $(settings.selector.bpmInput).val(initialBpmFromHtml); // Ensure it's set if not by Sequencer
+            Debug.log('Ui.init() - Sequencer.getBpm() not available or Sequencer not ready. Using HTML value for BPM:', initialBpmFromHtml);
+        }
     }
 
     var bindEventHandlers = function() {
@@ -148,6 +164,15 @@ var Ui = ( function() {
             } );
 
             new Clipboard( settings.selector.share.button );
+
+        // BPM input change handler
+        $( document ).on( 'change', settings.selector.bpmInput, function() {
+            var newBpm = parseInt( $( this ).val() );
+            if ( !isNaN( newBpm ) ) {
+                Debug.log( 'Ui.handleChangeBpm()', newBpm );
+                Sequencer.setBpm( newBpm );
+            }
+        });
     }
 
     var highlightButton = function( sample ) {
