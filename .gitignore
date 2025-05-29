@@ -1,0 +1,39 @@
+# Node modules
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Build output
+dist/
+dist\
+build/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.local
+
+# VS Code settings
+.vscode/
+
+# Coverage reports
+coverage/
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+
+# Python cache
+__pycache__/
+*.pyc
+
+# IDE files
+.idea/
+*.iml
