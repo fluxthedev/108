@@ -1,0 +1,49 @@
+// Styles for BPM input and its label
+
+label[for="bpm-input"] {
+  font-family: @font--1;
+  color: @color--text;
+  padding: 0 0.5rem; // Align with button padding
+  line-height: 4rem; // Match .control-button height for vertical centering
+  margin: 0.5rem 0 0.5rem 0.5rem; // Match .control-button margin (left, top, bottom)
+  display: inline-block; // Allow vertical alignment and padding
+  vertical-align: middle; // Align with input field
+  opacity: 0.75; // Slightly less prominent than buttons
+}
+
+#bpm-input {
+  width: 60px; // Slightly wider to accommodate 3 digits + spinner
+  height: 4rem; // Match .control-button height
+  margin-left: 0.25rem; // Small space between label and input
+  margin-right: 0.5rem; // Match .control-button margin
+  margin-top: 0.5rem; // Match .control-button margin
+  margin-bottom: 0.5rem; // Match .control-button margin
+  padding: 0.65rem 0.3rem; // Similar padding to buttons, adjusted for width
+  background-color: lighten(@color--bg, 5%); // Slightly lighter than main background
+  color: @color--text;
+  border: 1px solid lighten(@color--bg, 15%); // Border like inactive buttons
+  font-family: @font--1;
+  text-align: center;
+  font-size: 0.875rem; // Match .ui--controls font-size
+  line-height: 1; // Match .ui--controls line-height
+  box-sizing: border-box; // Ensure padding and border are within width/height
+  vertical-align: middle; // Align with label
+
+  // Style for number input spinners (Webkit)
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; // Remove default margin
+  }
+
+  // Style for number input spinners (Firefox)
+  &[type=number] {
+    -moz-appearance: textfield; // Remove default spinner
+  }
+
+  &:focus {
+    outline: none;
+    border-color: @color--accent;
+    background-color: lighten(@color--bg, 10%);
+  }
+}

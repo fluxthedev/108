@@ -28,7 +28,14 @@ var Ui = ( function() {
             },
             recorder: {
                 indicator: '.ui-indicator-recorder'
-            }
+            },
+            bpmInput: '#bpm-input',
+            sampleUploadKick: '#sample-upload-kick',
+            sampleUploadClap: '#sample-upload-clap',
+            sampleUploadHiHat: '#sample-upload-hihat',
+            sampleUploadSnare: '#sample-upload-snare',
+            sampleUploadTom: '#sample-upload-tom',
+            revertSamplesButton: '#revert-samples-button'
         },
         isVisible: {
             controls:   false,
@@ -64,6 +71,21 @@ var Ui = ( function() {
         }
 
         bindEventHandlers();
+
+        // Set initial BPM value
+        if (Sequencer && typeof Sequencer.getBpm === 'function') {
+            var initialBpm = Sequencer.getBpm();
+            $(settings.selector.bpmInput).val(initialBpm);
+            Debug.log('Ui.init() - Set initial BPM from Sequencer:', initialBpm);
+        } else {
+            // Fallback or default if Sequencer or getBpm is not available
+            // This might happen if Ui.js is initialized before Sequencer.js fully sets up getBpm
+            // Or if there's an issue with Sequencer's exposure of getBpm
+            // For now, we can log this or set a default value like 108 from the input's HTML
+            var initialBpmFromHtml = parseInt($(settings.selector.bpmInput).val());
+            $(settings.selector.bpmInput).val(initialBpmFromHtml); // Ensure it's set if not by Sequencer
+            Debug.log('Ui.init() - Sequencer.getBpm() not available or Sequencer not ready. Using HTML value for BPM:', initialBpmFromHtml);
+        }
     }
 
     var bindEventHandlers = function() {
@@ -148,6 +170,57 @@ var Ui = ( function() {
             } );
 
             new Clipboard( settings.selector.share.button );
+
+        // BPM input change handler
+        $( document ).on( 'change', settings.selector.bpmInput, function() {
+            var newBpm = parseInt( $( this ).val() );
+            if ( !isNaN( newBpm ) ) {
+                Debug.log( 'Ui.handleChangeBpm()', newBpm );
+                Sequencer.setBpm( newBpm );
+            }
+        });
+
+        // Sample upload change handlers
+        $( document ).on( 'change', settings.selector.sampleUploadKick, function(event) { handleSampleUpload(event, 0); });
+        $( document ).on( 'change', settings.selector.sampleUploadClap, function(event) { handleSampleUpload(event, 1); });
+        $( document ).on( 'change', settings.selector.sampleUploadHiHat, function(event) { handleSampleUpload(event, 2); });
+        $( document ).on( 'change', settings.selector.sampleUploadSnare, function(event) { handleSampleUpload(event, 3); });
+        $( document ).on( 'change', settings.selector.sampleUploadTom, function(event) { handleSampleUpload(event, 4); });
+
+        // Revert samples button click handler
+        $( document ).on( 'click', settings.selector.revertSamplesButton, function() {
+            Debug.log( 'Ui.handleRevertSamplesClick()' );
+            Sequencer.revertToDefaultSamples();
+            // Optionally, provide UI feedback here, e.g., reset file input fields
+            $(settings.selector.sampleUploadKick).val('');
+            $(settings.selector.sampleUploadClap).val('');
+            $(settings.selector.sampleUploadHiHat).val('');
+            $(settings.selector.sampleUploadSnare).val('');
+            $(settings.selector.sampleUploadTom).val('');
+        });
+    }
+
+    var handleSampleUpload = function( event, sampleIndex ) {
+        Debug.log( 'Ui.handleSampleUpload()', event, sampleIndex );
+        var file = event.target.files[0];
+
+        if (file) {
+            var blobUrl = URL.createObjectURL(file);
+            var sampleData = { src: blobUrl, gain: 0.9 }; // Default gain, can be configurable later
+
+            // Construct the object in the format expected by Sequencer.loadCustomSamples
+            // e.g., { 0: { src: 'blob_url_kick', gain: 0.9 } }
+            var samplesToLoad = {};
+            samplesToLoad[sampleIndex] = sampleData;
+            
+            Sequencer.loadCustomSamples(samplesToLoad);
+            Sequencer.initSampler(); // Immediately rebuild and activate the sampler
+
+            Debug.log('Ui.handleSampleUpload() - Loaded custom sample and re-initialized sampler:', sampleIndex, blobUrl);
+            // Optionally, provide UI feedback here, e.g., display filename or success message
+        } else {
+            Debug.log('Ui.handleSampleUpload() - No file selected for sample index:', sampleIndex);
+        }
     }
 
     var highlightButton = function( sample ) {

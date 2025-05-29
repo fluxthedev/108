@@ -139,6 +139,46 @@ _paq.push(['enableLinkTracking']);
 				<a href="#" class="control-button control-button--narrow control-button--no-feedback" data-key="shift" data-action="metronome" title="Toggle metronome">
 					/
 				</a>
+				<label for="bpm-input">BPM:</label>
+				<input type="number" id="bpm-input" value="108">
+			</div>
+
+			<div class="sample-controls-wrapper">
+				<h4>Custom Samples:</h4>
+				<div>
+					<label for="sample-upload-kick">Kick:</label>
+					<input type="file" id="sample-upload-kick" data-sample-index="0" accept="audio/*">
+				</div>
+				<div>
+					<label for="sample-upload-clap">Clap:</label>
+					<input type="file" id="sample-upload-clap" data-sample-index="1" accept="audio/*">
+				</div>
+				<div>
+					<label for="sample-upload-hihat">Hi-Hat:</label>
+					<input type="file" id="sample-upload-hihat" data-sample-index="2" accept="audio/*">
+				</div>
+				<div>
+					<label for="sample-upload-snare">Snare:</label>
+					<input type="file" id="sample-upload-snare" data-sample-index="3" accept="audio/*">
+				</div>
+				<div>
+					<label for="sample-upload-tom">Tom:</label>
+					<input type="file" id="sample-upload-tom" data-sample-index="4" accept="audio/*">
+				</div>
+				<button id="revert-samples-button">Revert to Default Samples</button>
+			</div>
+
+			<div id="sample-guidelines" style="margin-top: 10px;">
+				<h4>Sample Usage Guidelines:</h4>
+				<p>To ensure your custom drum samples play smoothly and predictably, please keep the following in mind:</p>
+				<ul>
+					<li><strong>Supported Formats:</strong> We recommend using <code>.mp3</code> or <code>.wav</code> files for best compatibility. Other formats supported by your browser's Web Audio API (like <code>.ogg</code> or <code>.flac</code>) may also work.</li>
+					<li><strong>Sample Length:</strong> Shorter is better! Aim for samples under 2 seconds, ideally less than 1 second, especially for percussive sounds. This helps with tight timing in sequences.</li>
+					<li><strong>Trimming:</strong> Remove any leading or trailing silence from your samples using an audio editor. This ensures they trigger exactly when expected.</li>
+					<li><strong>Loudness:</strong> Try to use samples with a consistent loudness. If some samples are much louder or quieter than others, they might not mix well. You can adjust levels in an audio editor before uploading. Our default gain setting will be applied, but starting with well-balanced samples is best.</li>
+					<li><strong>Mono vs. Stereo:</strong> For most drum machine sounds, mono samples are perfectly fine and will have smaller file sizes. Stereo is also supported.</li>
+					<li><strong>File Size:</strong> While there's no strict limit, smaller file sizes (e.g., under a few hundred kilobytes) will load faster and use less memory.</li>
+				</ul>
 			</div>
 		</div>
 
