@@ -14,7 +14,7 @@ var Sequencer = ( function() {
         },
         iskeyDown: false,
         isShiftDown: false,
-        samples: {
+        defaultSamples: { // Renamed from 'samples'
             '808': {
                 0: {
                     src:    'dist/samples/808/mp3/kick--21.mp3',
@@ -38,6 +38,9 @@ var Sequencer = ( function() {
                 }
             }
         },
+        customSamples: {}, // To store user-uploaded samples {0: {src: '...', gain: ...}}
+        activePlaybackConfiguration: [], // Stores resolved {src, gain} for each slot
+        // activeSampleSet: null, // This will be effectively replaced by activePlaybackConfiguration logic
         bpm:           108,
         division:      16,
         isPlaying:     false,
@@ -57,6 +60,9 @@ var Sequencer = ( function() {
 
     var init = function() {
         Debug.log( 'Sequencer.init()' );
+
+        settings.customSamples = {}; // Initialize customSamples
+        // settings.activeSampleSet = settings.defaultSamples['808']; // No longer using activeSampleSet directly like this
 
         bindEventHandlers();
 
@@ -193,35 +199,79 @@ var Sequencer = ( function() {
     }
 
     // Samples
+    // Samples
     var initSampler = function() {
         Debug.log( 'Sequencer.initSampler()' );
 
-        var samples = {}
+        if (settings.sampler) {
+            settings.sampler.dispose(); // Clean up old sampler if it exists
+        }
 
-        for( var i = 0; i < Object.keys( settings.samples['808'] ).length; i++ ) {
-            samples[i] = settings.samples['808'][i].src;
+        settings.activePlaybackConfiguration = [];
+        var samplesForToneMultiPlayer = {};
+
+        for (var i = 0; i < Object.keys(settings.defaultSamples['808']).length; i++) { // Assuming 5 tracks based on defaultSamples
+            var defaultSrc = settings.defaultSamples['808'][i].src;
+            var defaultGain = settings.defaultSamples['808'][i].gain;
+
+            var currentSrc = defaultSrc;
+            var currentGain = defaultGain;
+
+            if (settings.customSamples[i] && settings.customSamples[i].src) {
+                currentSrc = settings.customSamples[i].src;
+                currentGain = settings.customSamples[i].gain;
+            }
+
+            samplesForToneMultiPlayer[i] = currentSrc;
+            settings.activePlaybackConfiguration[i] = { src: currentSrc, gain: currentGain };
         }
 
         settings.sampler = new Tone.MultiPlayer(
-            samples,
+            samplesForToneMultiPlayer,
             function() {
                 $( document ).trigger( 'sequencer/loaded' );
             }
         );
+        // $(document).trigger('sequencer/samplesUpdated'); // Optional: consider adding this event
     }
 
 
     var playSample = function( i, time ) {
         Debug.log( 'Sequencer.playSample()', i );
 
-        if( settings.isLoaded ) {
+        if( settings.isLoaded && settings.activePlaybackConfiguration[i] ) {
             // bufferName, time, offset, duration, pitch, gain
-            settings.sampler.start( i, time, 0, '1n', 0, settings.samples['808'][i].gain );
+            settings.sampler.start( i, time, 0, '1n', 0, settings.activePlaybackConfiguration[i].gain );
 
             $( document ).trigger( 'sequencer/playSample', [ {
                 sample: i
             } ] );
         }
+    }
+
+    var loadCustomSamples = function( newSampleData ) {
+        Debug.log( 'Sequencer.loadCustomSamples()', newSampleData );
+        
+        var sampleIndex = Object.keys(newSampleData)[0];
+        var sampleData = newSampleData[sampleIndex];
+
+        if (sampleIndex !== undefined && sampleData) {
+            settings.customSamples[sampleIndex] = sampleData;
+            // No direct call to initSampler() here. It will be called separately when needed by UI or other logic.
+            // However, for immediate effect or if UI expects it, a subsequent call to initSampler() is needed.
+            // For now, adhering strictly to "Do not call initSampler()".
+            // Consider if an event should be triggered or if activePlaybackConfiguration should be updated partially.
+            // For simplicity and to reflect need for explicit refresh:
+            // initSampler(); // If immediate effect is desired. For now, this is deferred.
+            // Let's trigger an event that UI can listen to, to then decide to call initSampler.
+            $(document).trigger('sequencer/customSampleLoaded');
+        }
+    }
+
+    var revertToDefaultSamples = function() {
+        Debug.log( 'Sequencer.revertToDefaultSamples()' );
+        settings.customSamples = {};
+        initSampler();
     }
 
 
@@ -267,7 +317,8 @@ var Sequencer = ( function() {
                 }
             }
 
-            for( var i = 0; i < Object.keys( settings.samples['808'] ).length; i++ ) {
+            // Loop over the number of tracks defined by default samples (5)
+            for( var i = 0; i < Object.keys(settings.defaultSamples['808']).length; i++ ) {
                 if( settings.sequence[i][step] === 1  ) {
                     playSample( i );
 
@@ -434,8 +485,9 @@ var Sequencer = ( function() {
     var clearSequence = function() {
         Debug.log( 'Sequencer.clearSequence()' );
 
-        // init sequence
-        for( var i = 0; i < Object.keys( settings.samples['808'] ).length; i++ ) {
+        // init sequence based on number of default tracks
+        var numTracks = Object.keys(settings.defaultSamples['808']).length;
+        for( var i = 0; i < numTracks; i++ ) {
             var track = [];
 
             for( var j = 0; j < settings.division; j++ ) {
@@ -538,7 +590,10 @@ var Sequencer = ( function() {
         getSequence: function() { return getSequence() },
         getDivision: function() { return getDivision() },
         setBpm:      function( newBpm ) { setBpm( newBpm ); },
-        getBpm:      function() { return getBpm(); }
+        getBpm:      function() { return getBpm(); },
+        loadCustomSamples: function( newSampleData ) { loadCustomSamples( newSampleData ); },
+        revertToDefaultSamples: function() { revertToDefaultSamples(); },
+        initSampler: function() { initSampler(); } // Expose initSampler
     }
 
 } )();
