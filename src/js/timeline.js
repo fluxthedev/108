@@ -57,14 +57,36 @@ var Timeline = ( function() {
                 run();
             } )
             .on( 'sequencer/addSequenceItem', function( event, data ) {
-                Debug.log( data );
-                // wait for all SVGs to load before adding notes
-                var waiter = setInterval( function() {
-                    if( settings.isLoaded ) {
-                        clearInterval( waiter );
-                        addNote( data.step, data.sample, data.division, data.id );
+                try {
+                    if (typeof Debug !== 'undefined' && typeof Debug.log === 'function') {
+                        // Avoid logging the whole 'data' object if it's complex or causes issues
+                        Debug.log('Timeline: sequencer/addSequenceItem event. Step: ' + (data ? String(data.step) : 'N/A') + ', Sample: ' + (data ? String(data.sample) : 'N/A'));
                     }
-                }, 50 );
+                    
+                    // wait for all SVGs to load before adding notes
+                    var waiter = setInterval( function() {
+                        // It's good practice to also wrap setInterval's callback content if it can fail
+                        try {
+                            if( settings.isLoaded ) {
+                                clearInterval( waiter );
+                                if (data && data.step !== undefined && data.sample !== undefined && data.division !== undefined && data.id !== undefined) { // Ensure data and its properties are defined
+                                    addNote( data.step, data.sample, data.division, data.id );
+                                } else {
+                                    var errDataMsg = 'Timeline: sequencer/addSequenceItem event triggered with null, undefined, or incomplete data object.';
+                                    if (typeof Debug !== 'undefined' && typeof Debug.log === 'function') {
+                                         Debug.log(errDataMsg);
+                                    } else {
+                                         console.log(errDataMsg);
+                                    }
+                                }
+                            }
+                        } catch (e_interval) {
+                            console.error('Error in timeline sequencer/addSequenceItem interval callback:', e_interval);
+                        }
+                    }, 50 );
+                } catch (e_event) {
+                    console.error('Error in timeline sequencer/addSequenceItem event handler:', e_event);
+                }
             } )
             .on( 'sequencer/playStep', function( event, data ) {
                 playNote( data.step );
@@ -117,6 +139,34 @@ var Timeline = ( function() {
 
         Snap.load( 'dist/img/' + filename + '.svg', function ( svg ) {
             var group = svg.select( 'g' );
+
+            // ===== START Defensive Code =====
+            if (!group) {
+                var errorMsgAddLayer = 'Timeline.addLayer: Failed to find <g> in loaded SVG: ' + String(filename) + '.svg. The loaded svg object might be invalid or empty.';
+                if (typeof Debug !== 'undefined' && typeof Debug.error === 'function') {
+                    try {
+                        Debug.error(errorMsgAddLayer);
+                    } catch (e) {
+                        console.error('Error in Debug.error itself (Timeline.addLayer):', e, 'Original message:', errorMsgAddLayer);
+                    }
+                } else if (typeof Debug !== 'undefined' && typeof Debug.log === 'function') {
+                    try {
+                        Debug.log('ERROR: ' + errorMsgAddLayer);
+                    } catch (e) {
+                        console.error('Error in Debug.log itself (Timeline.addLayer):', e, 'Original message:', 'ERROR: ' + errorMsgAddLayer);
+                    }
+                } else {
+                    console.error(errorMsgAddLayer);
+                }
+
+                // Still increment svgLoaded and check if all are processed to potentially fire timeline/loaded
+                settings.svgLoaded = settings.svgLoaded + 1;
+                if (settings.svgLoaded === Object.keys(settings.layer).length + Object.keys(settings.layerNotes).length) {
+                    $(document).trigger('timeline/loaded');
+                }
+                return; // Exit this callback if group is null
+            }
+            // ===== END Defensive Code =====
 
             // check whether to prepend or append
             var indexMax = 0;
@@ -198,8 +248,27 @@ var Timeline = ( function() {
     var addNote = function( step, sample, division, id ) {
         Debug.log( 'Timeline.addNote()', step, sample, division, id );
 
-        var layer = settings.svg.placeholder.select( '.' + settings.layerNotes[sample] );
-        if( layer ) {
+        var noteSelector = '.' + settings.layerNotes[sample];
+        var layer = settings.svg.placeholder.select(noteSelector);
+
+        // ===== START Log for diagnosis =====
+        if (!layer) {
+            var errorMessage = 'Timeline.addNote: DIAGNOSIS: Layer for sample ' + String(sample) + ' (selector "' + String(noteSelector) + '") was NOT found in placeholder SVG.';
+            // Using Debug.log for this diagnostic message as it's not a direct error yet, but a finding.
+            if (typeof Debug !== 'undefined' && typeof Debug.log === 'function') {
+                try {
+                    Debug.log(errorMessage);
+                } catch (e) {
+                    console.error('Error in Debug.log itself (Timeline.addNote):', e, 'Original message:', errorMessage);
+                }
+            } else {
+                console.log(errorMessage); // console.log is generally safer
+            }
+            // No return here, let the original if(layer) handle it, this is just for logging.
+        }
+        // ===== END Log for diagnosis =====
+
+        if( layer ) { // This existing if condition correctly prevents clone() on a null layer
             layer = layer.clone();
 
             var note = {
