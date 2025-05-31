@@ -62,7 +62,7 @@ var Timeline = ( function() {
                         // Avoid logging the whole 'data' object if it's complex or causes issues
                         Debug.log('Timeline: sequencer/addSequenceItem event. Step: ' + (data ? String(data.step) : 'N/A') + ', Sample: ' + (data ? String(data.sample) : 'N/A'));
                     }
-                    
+
                     // wait for all SVGs to load before adding notes
                     var waiter = setInterval( function() {
                         // It's good practice to also wrap setInterval's callback content if it can fail
