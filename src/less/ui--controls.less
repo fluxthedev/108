@@ -105,6 +105,16 @@
 	.control-button--narrow {
 		width: auto;
 	}
+
+	// ===== START NEW CSS FIX =====
+	.ui-toggle--controls {
+		top: 0.5rem;      // Adjust to align with parent's padding-top (0.5rem on .ui--controls)
+		right: 0.5rem;    // Adjust to align with parent's padding-right (0.5rem on .ui--controls)
+		margin-top: 0;    // Remove the negative top margin
+		// Optionally, ensure it's above other elements if necessary, though likely not an issue here.
+		// z-index: 10;
+	}
+	// ===== END NEW CSS FIX =====
 }
 
 
