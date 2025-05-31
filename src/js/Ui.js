@@ -91,7 +91,8 @@ var Ui = ( function() {
     var bindEventHandlers = function() {
         $( document )
             // toggle controls
-            .on( 'click', settings.selector.controls.toggle, function( event ) {
+            // Changed from 'click' to 'touchstart' for better responsiveness on touch devices
+            .on( 'touchstart', settings.selector.controls.toggle, function( event ) {
                 event.preventDefault();
 
                 toggleControls();
