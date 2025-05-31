@@ -22,7 +22,7 @@ jobs:
         run: npm install
 
       - name: Build with Grunt
-        run: npm run grunt
+        run: npx grunt
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
