@@ -36,9 +36,10 @@ jobs:
     - name: Upload GitHub Pages artifact
       uses: actions/upload-pages-artifact@v3
       with:
-        name: github-pages
+        name: github-pages-${{ matrix.node-version }}
         path: ./dist
-      
+
     - name: Deploy to GitHub Pages
+      if: ${{ matrix.node-version == '22.x' }}
       id: deployment 
       uses: actions/deploy-pages@v3
