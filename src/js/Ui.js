@@ -212,7 +212,7 @@ var Ui = ( function() {
             // e.g., { 0: { src: 'blob_url_kick', gain: 0.9 } }
             var samplesToLoad = {};
             samplesToLoad[sampleIndex] = sampleData;
-            
+
             Sequencer.loadCustomSamples(samplesToLoad);
             Sequencer.initSampler(); // Immediately rebuild and activate the sampler
 

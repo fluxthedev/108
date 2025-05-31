@@ -251,7 +251,7 @@ var Sequencer = ( function() {
 
     var loadCustomSamples = function( newSampleData ) {
         Debug.log( 'Sequencer.loadCustomSamples()', newSampleData );
-        
+
         var sampleIndex = Object.keys(newSampleData)[0];
         var sampleData = newSampleData[sampleIndex];
 
